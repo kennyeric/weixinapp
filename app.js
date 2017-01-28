@@ -14,7 +14,7 @@ app.use(bodyParser.urlencoded({     // to support URL-encoded bodies
 var connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: '123<>?zxc)_+',
     database: 'app'
 })
 
