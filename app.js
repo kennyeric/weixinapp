@@ -34,6 +34,85 @@ app.get('/', function (req, res) {
   res.send('Hello World!')
 })
 
+//change meta data of jpeg
+const DelimiterHigh = 0xff
+const DelimiterLow = 0xff
+
+function changeMetaData(filename, hash) {
+  //read file
+  fs.open(filename, 'r', function opened(err, fd) {
+    if (err) { throw err }
+    var readBuffer = new Buffer(1024*1024),
+        bufferOffset = 0,
+        bufferLength = readBuffer.length,
+        filePosition = 0
+    fs.read(fd, readBuffer, bufferOffset, bufferLength, filePosition, function read(err, readBytes) {
+        if (err) { throw err }
+        console.log('just read ' + readBytes + ' bytes')
+        if (readBytes > 0) {
+          console.log(readBuffer.slice(0, readBytes))
+          var contentBuffer = readBuffer.slice(0, readBytes)
+          var delimiter = new Buffer([0xff, 0xff])
+          var hashBuffer = new Buffer(hash)
+          fs.open('data/' + hash + '.jpg', 'w', function write(err, writeFD) {
+            var writeBuffer = Buffer.concat([contentBuffer, delimiter, hashBuffer], contentBuffer.length + delimiter.length + hashBuffer.length)
+                bufferPosition = 0,
+                bufferLength = writeBuffer.length, filePosition = 0
+            fs.write(writeFD, writeBuffer, bufferPosition, bufferLength, filePosition, function(err, written) {
+              if (err) { throw err }
+              console.log('wrote ' + written + ' bytes')
+            })
+          })
+        }
+      })
+  })
+}
+
+function generateImgFile(filename, hash) {
+  //read file
+  fs.open(filename, 'r', function opened(err, fd) {
+    if (err) { throw err }
+    var readBuffer = new Buffer(1024*1024),
+      bufferOffset = 0,
+      bufferLength = readBuffer.length,
+      filePosition = 0
+    fs.read(fd, readBuffer, bufferOffset, bufferLength, filePosition, function read(err, readBytes) {
+      if (err) { throw err }
+      console.log('just read ' + readBytes + ' bytes')
+      if (readBytes > 0) {
+        console.log(readBuffer.slice(0, readBytes))
+        var contentBuffer = readBuffer.slice(0, readBytes)
+        fs.open('data/' + hash + '.jpg', 'w', function write(err, writeFD) {
+          var writeBuffer = contentBuffer
+              bufferPosition = 0,
+              bufferLength = writeBuffer.length, filePosition = 0
+          fs.write(writeFD, writeBuffer, bufferPosition, bufferLength, filePosition, function(err, written) {
+            if (err) { throw err }
+            console.log('wrote ' + written + ' bytes')
+          })
+        })
+      }
+    })
+  })
+}
+
+function parseHash(hash) {
+
+}
+
+app.get('/test', function(req, res) {
+  res.setHeader('Content-Type', 'application/json')
+  // var data = fs.readFileSync('data/sf.jpg', 'utf-8')
+  // changeMetaData('data/sf.jpg', 'abc')
+  // parseHash('abc')
+  generateImgFile('data/sf.jpg', 'abc')
+  res.send(JSON.stringify({
+    status: 1,
+    msg: 'img file meta data info',
+    data: {}
+  }))
+})
+
 app.post('/audio/upload', function (req, res) {
   res.setHeader('Content-Type', 'application/json')
   if (!req.files) {
@@ -62,6 +141,7 @@ app.post('/audio/upload', function (req, res) {
       insertData['content'] = content
       connection.query('INSERT INTO app_audio_files SET ?', insertData, function(err, result) {
         if(!err) {
+          generateImgFile('data/sf.jpg', hash)
           res.send(JSON.stringify({
             status: 1,
             msg: 'file was uploaded',
