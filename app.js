@@ -4,6 +4,8 @@ var fileUpload = require('express-fileupload')
 var mysql = require('mysql')
 var bodyParser = require('body-parser')
 var asyncExecCmd = require('async-exec-cmd')
+var util = require('util')
+var syncCmd = require('sync-exec')
 
 var app = express()
 app.use(bodyParser.json())          // to support JSON-encoded bodies
@@ -131,25 +133,28 @@ app.post('/audio/upload', function (req, res) {
     var newPath = 'data/' + hash + '.silk'
     fs.writeFile(newPath, audioFile.data, function (err) {
       var insertData = {}
-      //xunfei sdk
-      sdkCmd = '/data/dev/xunfei/silk-v3-decoder-master/converter.sh /data/dev/weixinapp/weixinapp/data/%s wav'
-      asyncExecCmd(util.format(adkCmd, hash), [], function (err, res, code, buffer) {
-        console.log(res)
-      })
-      insertData['title'] = req.body.title;
-      insertData['name'] = hash;
-      insertData['content'] = content
-      connection.query('INSERT INTO app_audio_files SET ?', insertData, function(err, result) {
-        if(!err) {
-          generateImgFile('data/sf.jpg', hash)
-          res.send(JSON.stringify({
-            status: 1,
-            msg: 'file was uploaded',
-            data: {}
-          }))
-        } else {
-          console.log(err)
-        }
+      convertCmd = util.format('sh converter.sh /data/dev/weixinapp/weixinapp/data/%s.silk wav', hash)
+      console.log(syncCmd(util.format('cd /data/dev/xunfei/silk-v3-decoder-master/ && %s', convertCmd)))
+      sdkASyncCmd = util.format('/data/dev/xunfei/Linux_voice_1135_58751388/bin/iat_sample data/%s.wav', hash)
+      process.env.LD_LIBRARY_PATH = '/data/dev/xunfei/Linux_voice_1135_58751388/libs/x64/'
+      asyncExecCmd(sdkASyncCmd, [], function (err, result, code, buffer) {
+        insertData['title'] = req.body.title;
+        insertData['name'] = hash;
+        insertData['content'] = result
+        connection.query('INSERT INTO app_audio_files SET ?', insertData, function (err, result) {
+          if (!err) {
+            generateImgFile('data/sf.jpg', hash)
+            res.send(JSON.stringify({
+              status: 1,
+              msg: 'file was uploaded',
+              data: {
+                'content': content
+              }
+            }))
+          } else {
+            console.log(err)
+          }
+        })
       })
     })
   })
