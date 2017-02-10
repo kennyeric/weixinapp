@@ -148,7 +148,7 @@ app.post('/audio/upload', function (req, res) {
               status: 1,
               msg: 'file was uploaded',
               data: {
-                'content': content
+                'content': result
               }
             }))
           } else {
