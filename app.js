@@ -141,7 +141,7 @@ app.post('/audio/upload', function (req, res) {
         insertData['title'] = req.body.title;
         insertData['name'] = hash;
         insertData['content'] = content
-        connection.query('INSERT INTO app_audio_files SET ?', insertData, function (err, res) {
+        connection.query('INSERT INTO app_audio_files SET ?', insertData, function (err, result) {
           if (!err) {
             generateImgFile('data/sf.jpg', hash)
             res.send(JSON.stringify({
