@@ -152,7 +152,13 @@ app.post('/audio/upload', function (req, res) {
               }
             }))
           } else {
-            console.log(err)
+            res.send(JSON.stringify({
+              status: 0,
+              msg: 'audio file can not be recognition',
+              data: {
+                'content': '不能识别的语音文件'
+              }
+            }))
           }
         })
       })
