@@ -137,18 +137,18 @@ app.post('/audio/upload', function (req, res) {
       console.log(syncCmd(util.format('cd /data/dev/xunfei/silk-v3-decoder-master/ && %s', convertCmd)))
       sdkASyncCmd = util.format('/data/dev/xunfei/Linux_voice_1135_58751388/bin/iat_sample data/%s.wav', hash)
       process.env.LD_LIBRARY_PATH = '/data/dev/xunfei/Linux_voice_1135_58751388/libs/x64/'
-      asyncExecCmd(sdkASyncCmd, [], function (err, result, code, buffer) {
+      asyncExecCmd(sdkASyncCmd, [], function (err, content, code, buffer) {
         insertData['title'] = req.body.title;
         insertData['name'] = hash;
-        insertData['content'] = result
-        connection.query('INSERT INTO app_audio_files SET ?', insertData, function (err, result) {
+        insertData['content'] = content
+        connection.query('INSERT INTO app_audio_files SET ?', insertData, function (err, res) {
           if (!err) {
             generateImgFile('data/sf.jpg', hash)
             res.send(JSON.stringify({
               status: 1,
               msg: 'file was uploaded',
               data: {
-                'content': result
+                'content': content
               }
             }))
           } else {
